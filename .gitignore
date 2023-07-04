@@ -1,0 +1,5 @@
+database_data/*
+php/connect.php
+.env
+
+arquivos_recebidos/*

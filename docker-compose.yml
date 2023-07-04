@@ -1,0 +1,64 @@
+version: '3'
+services:
+    db:
+      image: mariadb:latest
+      restart: always
+      ports:
+      - "${DB_PORT:-3306}:3306"
+      environment:
+        MYSQL_ROOT_HOST: "%"
+        MYSQL_ROOT_PASSWORD: '${DB_PASSWORD:-root}'
+        MYSQL_DATABASE: '${DB_DATABASE:-arquivos}'
+        MYSQL_USER: '${DB_USERNAME:-root}'
+        MYSQL_PASSWORD: '${DB_PASSWORD:-root}'
+        #MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+      volumes:
+        - './database_data:/var/lib/mysql'
+      networks:
+        - servidorarquivos
+      container_name: servidor_arquivos_mysql
+
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        container_name: servidor_arquivos_phpmyadmin
+        environment:
+          PMA_HOST: db
+          PMA_PORT: '${DB_PORT:-3306}'
+          PMA_USER: '${DB_USERNAME:-root}'
+          PMA_PASSWORD: '${DB_PASSWORD:-root}'
+        ports:
+          - 8080:80
+        networks:
+          - servidorarquivos
+        depends_on:
+          - db
+
+
+    servidorphp:
+        image: php:8.2-apache
+        container_name: servidor_arquivos_php
+        ports:
+          - '${APP_PORT:-80}:80'
+        volumes:
+          - './php:/var/www/html'
+          - './php_config/php.ini:/usr/local/etc/php/php.ini'
+        environment:
+          UPLOAD_LIMIT: 64M
+        networks:
+          - servidorarquivos
+        depends_on:
+          - db
+        #comandos a serem executados, instala o mysqli e habilita
+        command: >
+          bash -c "docker-php-ext-install mysqli && docker-php-ext-enable mysqli && apache2-foreground"
+    
+networks:
+    servidorarquivos:
+        driver: bridge
+        
+volumes:
+  mysql:
+  phpmyadmin:
+  servidorphp:
+  
+  
