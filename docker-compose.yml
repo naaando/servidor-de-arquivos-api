@@ -42,8 +42,6 @@ services:
         volumes:
           - './php:/var/www/html'
           - './php_config/php.ini:/usr/local/etc/php/php.ini'
-        environment:
-          UPLOAD_LIMIT: 64M
         networks:
           - servidorarquivos
         depends_on:
