@@ -17,49 +17,57 @@ if (!empty($_POST['observacoes'])) {
     $observacoes = $_POST['observacoes'];
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Verifica se um arquivo foi enviado
-    if (isset($_FILES['arquivo'])) {
-        $diretorioDestino = 'arquivos_recebidos'; // Diretório onde o arquivo será salvo
-        
-        // Verifica se houve algum erro no upload do arquivo
-        if ($_FILES['arquivo']['error'] === UPLOAD_ERR_OK) {
-            $nomeArquivoOriginal = $_FILES['arquivo']['name'];
-            $extensao = pathinfo($nomeArquivoOriginal, PATHINFO_EXTENSION);
-            $nomeArquivo = uniqid();
-            $caminhoCompleto = $diretorioDestino . '/' . $nomeArquivo;
-            $tamanho = $_FILES['arquivo']['size'];
-
-            $statusSalvouNoBanco = salvaNoBancoDeDados($nomeArquivoOriginal, $extensao, $nomeArquivo, $observacoes, $tamanho);
-            
-            // Move o arquivo para o diretório de destino
-            if (move_uploaded_file($_FILES['arquivo']['tmp_name'], $caminhoCompleto)) {
-                // Arquivo salvo com sucesso
-                $resposta = array(
-                    'status' => 'success',
-                    'mensagem' => 'Arquivo salvo com sucesso.',
-                    'nomeArquivoOriginal' => $nomeArquivoOriginal,
-                    'extensao' => $extensao,
-                    'nomeArquivo' => $nomeArquivo,
-                    'caminhoCompleto' => $caminhoCompleto,
-                    'tamanho' => retornaTamanho($tamanho) . ' MB',
-                    );
-            } else {
-                // Erro ao mover o arquivo
-                $resposta = array('status' => 'error', 'mensagem' => 'Erro ao mover o arquivo para o diretório de destino.');
-            }
-        } else {
-            // Erro no upload do arquivo
-            $resposta = array('status' => 'error', 'mensagem' => 'Erro no upload do arquivo.');
-        }
-    } else {
-        // Nenhum arquivo enviado
-        $resposta = array('status' => 'error', 'mensagem' => 'Nenhum arquivo enviado.');
-    }
-} else {
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     // Método de requisição inválido
     $resposta = array('status' => 'error', 'mensagem' => 'Método de requisição inválido.');
+    echo json_encode($resposta);
+    return;
 }
+
+// Verifica se um arquivo foi enviado
+if (!isset($_FILES['arquivo'])) {
+    // Nenhum arquivo enviado
+    $resposta = array('status' => 'error', 'mensagem' => 'Nenhum arquivo enviado.');
+    echo json_encode($resposta);
+    return;
+}
+
+$diretorioDestino = 'arquivos_recebidos'; // Diretório onde o arquivo será salvo
+
+// Verifica se houve algum erro no upload do arquivo
+if ($_FILES['arquivo']['error'] === UPLOAD_ERR_OK) {
+    // Erro no upload do arquivo
+    $resposta = array('status' => 'error', 'mensagem' => 'Erro no upload do arquivo.');
+    echo json_encode($resposta);
+    return;
+}
+
+$nomeArquivoOriginal = $_FILES['arquivo']['name'];
+$extensao = pathinfo($nomeArquivoOriginal, PATHINFO_EXTENSION);
+$nomeArquivo = uniqid();
+$caminhoCompleto = $diretorioDestino . '/' . $nomeArquivo;
+$tamanho = $_FILES['arquivo']['size'];
+
+$statusSalvouNoBanco = salvaNoBancoDeDados($nomeArquivoOriginal, $extensao, $nomeArquivo, $observacoes, $tamanho);
+
+// Move o arquivo para o diretório de destino
+if (!move_uploaded_file($_FILES['arquivo']['tmp_name'], $caminhoCompleto)) {
+    // Erro ao mover o arquivo
+    $resposta = array('status' => 'error', 'mensagem' => 'Erro ao mover o arquivo para o diretório de destino.');
+    echo json_encode($resposta);
+    return;
+}
+
+// Arquivo salvo com sucesso
+$resposta = array(
+    'status' => 'success',
+    'mensagem' => 'Arquivo salvo com sucesso.',
+    'nomeArquivoOriginal' => $nomeArquivoOriginal,
+    'extensao' => $extensao,
+    'nomeArquivo' => $nomeArquivo,
+    'caminhoCompleto' => $caminhoCompleto,
+    'tamanho' => retornaTamanho($tamanho) . ' MB',
+);
 
 // Define o cabeçalho da resposta como JSON
 //header('Content-Type: application/json');
