@@ -32,7 +32,7 @@ if ($nomeArquivo) {
         // Envia o arquivo para o navegador
         readfile($filePath);
     } else {
-        echo 'Arquivo não encontrado.';
+        echo 'Arquivo não encontrado no armazenamento.';
     }
 } else {
     echo 'Arquivo não encontrado no banco de dados.';

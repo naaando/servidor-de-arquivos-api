@@ -10,3 +10,16 @@ php monta_as_tabelas.php
   
   
 sudo chmod -R a+r .env  
+
+
+
+POST  
+Use um binário junto com um JSON
+{
+    "observacoes":"Texto de observação para o arquivo"
+}
+
+GET
+http://URL:PORT/recupera_arquivo.php?id=CODIGODOARQUIVO
+
+
